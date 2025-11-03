@@ -6,11 +6,19 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    
+    private final AuthenticationFailureHandler failureHandler;
+
+    public SecurityConfig(AuthenticationFailureHandler failureHandler) {
+        this.failureHandler = failureHandler;
+    }
 
     @Bean 
     public BCryptPasswordEncoder passwordEncoder() {
@@ -29,10 +37,11 @@ public class SecurityConfig {
             .formLogin(form -> form
                 .loginPage("/login")
                 .defaultSuccessUrl("/default", true)
+                .failureHandler(failureHandler)
                 .permitAll()
             )
             .logout(logout -> logout
-                .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET")) // ✅ allows GET logout
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET")) 
                 .logoutSuccessUrl("/login?logout")
                 .permitAll()
             );

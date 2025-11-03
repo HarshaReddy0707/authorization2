@@ -1,16 +1,23 @@
 package authorization.authorization;
 
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.LockedException; 
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
+
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final userauthrepo userRepo;
+    private final LoginAttemptService loginAttemptService; 
 
-    public CustomUserDetailsService(userauthrepo userRepo) {
+    public CustomUserDetailsService(userauthrepo userRepo, LoginAttemptService loginAttemptService) {
         this.userRepo = userRepo;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @Override
@@ -19,11 +26,23 @@ public class CustomUserDetailsService implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("User not found");
         }
-        java.util.List<org.springframework.security.core.GrantedAuthority> authorities = new java.util.ArrayList<>();
-        for (authrole role : user.getRole()) {
-            authorities.add(new org.springframework.security.core.authority.SimpleGrantedAuthority(role.getName()));
+
+        
+        if (!user.isAccountNonLocked()) {
+            
+            if (loginAttemptService.unlockWhenTimeExpired(user)) {
+                
+            } else {
+                
+                throw new LockedException("User is blocked");
+            }
         }
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), authorities);
+       
+
+        java.util.List<GrantedAuthority> authorities = new java.util.ArrayList<>();
+        for (authrole role : user.getRole()) {
+            authorities.add(new SimpleGrantedAuthority(role.getName()));
+        }
+        return new User(user.getUsername(), user.getPassword(), authorities);
     }
-    
 }

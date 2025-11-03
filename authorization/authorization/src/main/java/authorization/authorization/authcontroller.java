@@ -43,14 +43,12 @@ public String Registration(@ModelAttribute("entity") authuser entity) {
     System.out.println("eneteered");
     userReg.registerUser(entity.getUsername(), entity.getPassword(), "ROLE_ADMIN");
     System.out.println("registered");
-    // persist or process the entity here, then redirect or return a view
     return "redirect:/login";
 }
 
  @GetMapping("/default")
     public String defaultAfterLogin(Authentication authentication) {
         
-        // Get roles for logged-in user
         Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
 
         if (roles.contains("ROLE_ADMIN")) {
@@ -60,18 +58,18 @@ public String Registration(@ModelAttribute("entity") authuser entity) {
             return "redirect:/user/home";
         }
 
-        return "redirect:/login?error=true"; // fallback
+        return "redirect:/login?error=true";
     }
 
 
      @GetMapping("/admin/home")
     public String adminHome() {
-        return "adminhome";  // admin_home.html in templates
+        return "adminhome";
     }
 
     @GetMapping("/user/home")
     public String userHome() {
-        return "userhome";   // user_home.html in templates
+        return "userhome";
     }
 
 }
